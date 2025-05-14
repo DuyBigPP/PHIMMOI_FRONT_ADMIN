@@ -1,5 +1,5 @@
 import React from "react"
-import { Home, BarChart2, Settings, List, ChevronRight } from "lucide-react"
+import { Home, Settings, Film, Users, Tag, Database } from "lucide-react"
 
 export type MenuItem = {
   label: string
@@ -11,15 +11,16 @@ export type MenuItem = {
 
 export const menuItems: MenuItem[] = [
   { label: "Dashboard", path: "/dashboard", icon: <Home size={16} /> },
-  { label: "Analytics", path: "/analytics", icon: <BarChart2 size={16} /> },
-  { label: "Settings", path: "/settings", icon: <Settings size={16} /> },
-  {
-    label: "Menu1",
-    path: "/menu1",
-    icon: <List size={16} />,
+  { 
+    label: "Movies", 
+    path: "/movies", 
+    icon: <Film size={16} />,
     children: [
-      { label: "Submenu1", path: "/menu1/submenu1", icon: <ChevronRight size={16} /> },
-      { label: "Submenu2", path: "/menu1/submenu2", icon: <ChevronRight size={16} /> },
-    ],
+      { label: "All Movies", path: "/movies/list", icon: <Database size={16} /> },
+      { label: "Add Movie", path: "/movies/add", icon: <Film size={16} /> },
+    ]
   },
+  { label: "Users", path: "/users", icon: <Users size={16} /> },
+  { label: "Genres", path: "/genres", icon: <Tag size={16} /> },
+  { label: "Settings", path: "/settings", icon: <Settings size={16} /> },
 ]
