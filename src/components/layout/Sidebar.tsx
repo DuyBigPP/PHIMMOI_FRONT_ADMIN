@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 import { LucideLayoutDashboard, ChevronRight } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+/* import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar" */
 
 export function AdminSidebar() {
   const location = useLocation()
@@ -104,14 +104,7 @@ export function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter className="mt-auto border-t border-border p-4">
         <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@example.com</span>
-          </div>
+            PHIMSKIBI
         </div>
       </SidebarFooter>
       <SidebarRail />

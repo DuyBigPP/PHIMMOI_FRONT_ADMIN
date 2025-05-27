@@ -2,6 +2,7 @@ import type React from "react"
 import { useLocation, Link } from "react-router-dom"
 import { ChevronRight, Home } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { UserMenu } from "./UserMenu"
 import { menuItems } from "@/config/menu"
 
 interface BreadcrumbItem {
@@ -14,8 +15,7 @@ export function BreadcrumbHeader() {
   const location = useLocation()
   const breadcrumbs = generateBreadcrumbs(location.pathname)
 
-  return (
-    <header className="sticky top-0 z-10 flex h-16 items-center bg-background px-4 lg:px-6">
+  return (    <header className="sticky top-0 z-10 flex h-16 items-center justify-between bg-background px-4 lg:px-6">
       <div className="flex h-full items-center gap-3">
         <SidebarTrigger />
         <div data-orientation="vertical" className="shrink-0 bg-border w-[1px] h-4"></div>
@@ -54,6 +54,9 @@ export function BreadcrumbHeader() {
           </ol>
         </nav>
       </div>
+      
+      {/* User Menu */}
+      <UserMenu />
     </header>
   )
 }

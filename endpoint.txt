@@ -1,0 +1,41 @@
+Comments API
+
+POST /api/movies/{movieId}/comments - Tạo bình luận mới cho phim
+GET /api/movies/{movieId}/comments - Lấy danh sách bình luận của một phim
+DELETE /api/comments/{commentId} - Xóa bình luận
+
+Movies API
+
+GET /api/movies - Lấy danh sách phim
+POST /api/movies - Thêm phim mới (Admin)
+GET /api/movies/{slug} - Lấy chi tiết phim theo slug
+PUT /api/movies/{id} - Sửa phim (Admin)
+DELETE /api/movies/{id} - Xóa phim (Admin)
+POST /api/episodes - Thêm tập phim mới (Admin)
+PUT /api/episodes/{id} - Sửa tập phim (Admin)
+DELETE /api/episodes/{id} - Xóa tập phim (Admin)
+
+Ratings API
+
+POST /api/movies/{movieId}/ratings - Tạo đánh giá mới cho phim
+GET /api/movies/{movieId}/ratings - Lấy danh sách đánh giá của một phim
+DELETE /api/movies/{movieId}/ratings - Xóa đánh giá của phim
+
+Recommendations API
+
+GET /api/movies/popular - Lấy danh sách phim phổ biến
+GET /api/movies/{movieId}/related - Lấy danh sách phim liên quan
+
+Views API
+
+POST /api/movies/{movieId}/views - Tăng lượt xem cho phim
+GET /api/movies/views/stats - Lấy thống kê lượt xem
+
+Xác thực API
+
+POST /api/register - Đăng ký người dùng mới
+POST /api/login - Đăng nhập
+GET /api/me - Lấy thông tin người dùng hiện tại
+GET /api/users - Lấy danh sách người dùng (Chỉ Admin)
+PUT /api/users/{id} - Cập nhật thông tin người dùng (Chỉ Admin)
+DELETE /api/users/{id} - Xóa người dùng (Chỉ Admin)

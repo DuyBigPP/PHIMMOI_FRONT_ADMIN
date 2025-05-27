@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AdminLayout } from "@/components/layout/AdminLayout"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import LoginPage from "@/pages/login"
 import DashboardPage from "@/pages/dashboard/DashboardPage"
 import SettingsPage from "@/pages/settings/SettingsPage"
 import MoviesListPage from "@/pages/movies/MoviesListPage"
@@ -15,7 +17,15 @@ export function AdminRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AdminLayout />}>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           
@@ -40,6 +50,9 @@ export function AdminRoutes() {
           {/* Redirect old analytics route to dashboard */}
           <Route path="analytics" element={<Navigate to="/dashboard" replace />} />
         </Route>
+        
+        {/* Catch all route - redirect to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   )
