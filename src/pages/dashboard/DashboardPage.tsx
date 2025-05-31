@@ -128,7 +128,7 @@ export default function DashboardPage() {
     dashboardData.topRated.reduce((sum, movie) => sum + Number(movie.average_rating || 0), 0) / dashboardData.topRated.length : 0;
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">   
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 -mt-10">   
        <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center space-x-4">
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>

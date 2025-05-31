@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MovieCreateRequest, MovieUpdateRequest, MovieResponse, CategoryStats, CountryStats } from '@/types/api';
+import { useState, useEffect, useRef } from 'react';
+import { MovieCreateRequest, MovieUpdateRequest, MovieResponse, CategoryStats, CountryStats, EpisodeCreateRequest, EpisodeUpdateRequest } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -15,26 +16,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { 
   X, 
   Check, 
   ChevronsUpDown,
   Image as ImageIcon,
-  Film
+  Film,
+  Play
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EpisodeManagement } from './EpisodeManagement';
+import { useMovieEpisodes } from '../hooks/useMovieEpisodes';
 
 interface AddMovieDialogProps {
   open: boolean;
@@ -55,6 +47,30 @@ export function AddMovieDialog({
   categories,
   countries
 }: AddMovieDialogProps) {
+  const [activeTab, setActiveTab] = useState('movie');
+  const [savedMovieId, setSavedMovieId] = useState<string | null>(null);
+    // Episode management hooks
+  const {
+    episodes,
+    loading: episodesLoading,
+    loadEpisodes,
+    addEpisode,
+    updateEpisode,
+    deleteEpisode,
+  } = useMovieEpisodes();
+
+  // Wrapper functions to handle return type mismatch
+  const handleAddEpisode = async (data: EpisodeCreateRequest): Promise<void> => {
+    await addEpisode(data);
+  };
+
+  const handleUpdateEpisode = async (data: EpisodeUpdateRequest): Promise<void> => {
+    await updateEpisode(data);
+  };
+
+  const handleDeleteEpisode = async (episodeId: string): Promise<void> => {
+    await deleteEpisode(episodeId);
+  };
   const [formData, setFormData] = useState<Partial<MovieCreateRequest>>({
     name: '',
     slug: '',
@@ -89,6 +105,25 @@ export function AddMovieDialog({
   const [countrySearch, setCountrySearch] = useState('');
   const [openCategoryCombobox, setOpenCategoryCombobox] = useState(false);
   const [openCountryCombobox, setOpenCountryCombobox] = useState(false);
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+        setOpenCategoryCombobox(false);
+      }
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setOpenCountryCombobox(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Reset form when dialog opens/closes or editing movie changes
   useEffect(() => {
@@ -114,11 +149,20 @@ export function AddMovieDialog({
           notify: '',
           showtimes: '',
           trailerUrl: ''
-        });
-        setSelectedCategories(editingMovie.categories?.map(cat => cat.category.slug) || []);
+        });        setSelectedCategories(editingMovie.categories?.map(cat => cat.category.slug) || []);
         setSelectedCountries(editingMovie.countries?.map(country => country.country.slug) || []);
+        setSelectedActors([]);
         setPosterPreview(editingMovie.posterUrl || '');
         setThumbPreview(editingMovie.thumbUrl || '');
+        setSavedMovieId(editingMovie.id);
+        // Load episodes for this movie
+        loadEpisodes(editingMovie.id);
+        // If it's a series, show episodes tab
+        if (editingMovie.type === 'series') {
+          setActiveTab('episodes');
+        } else {
+          setActiveTab('movie');
+        }
       } else {
         // Reset form for new movie
         setFormData({
@@ -143,15 +187,16 @@ export function AddMovieDialog({
           notify: '',
           showtimes: '',
           trailerUrl: ''
-        });
-        setSelectedCategories([]);
+        });        setSelectedCategories([]);
         setSelectedCountries([]);
         setSelectedActors([]);
         setPosterPreview('');
         setThumbPreview('');
+        setSavedMovieId(null);
+        setActiveTab('movie');
       }
     }
-  }, [open, editingMovie]);
+  }, [open, editingMovie, loadEpisodes]);
 
   // Auto-generate slug from name
   const generateSlug = (name: string) => {
@@ -205,9 +250,7 @@ export function AddMovieDialog({
         setThumbPreview('');
       }
     }
-  };
-
-  const handleCategorySelect = (categorySlug: string) => {
+  };  const handleCategorySelect = (categorySlug: string) => {
     const newCategories = selectedCategories.includes(categorySlug)
       ? selectedCategories.filter(slug => slug !== categorySlug)
       : [...selectedCategories, categorySlug];
@@ -217,6 +260,7 @@ export function AddMovieDialog({
       ...prev,
       categories: newCategories
     }));
+    // Keep the popover open for multi-selection by not changing the state
   };
 
   const handleCountrySelect = (countrySlug: string) => {
@@ -229,6 +273,7 @@ export function AddMovieDialog({
       ...prev,
       countries: newCountries
     }));
+    // Keep the popover open for multi-selection by not changing the state
   };
 
   const handleAddActor = () => {
@@ -251,28 +296,32 @@ export function AddMovieDialog({
       actors: newActors
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.slug || !formData.originName || !formData.content) {
       return;
-    }
-
-    try {
+    }    try {
       const submitData = editingMovie 
         ? { ...formData, id: editingMovie.id } as MovieUpdateRequest
         : formData as MovieCreateRequest;
-        await onSave(submitData);
-      onOpenChange(false);
+      
+      await onSave(submitData);
+        // If this is a new movie and it's a series, switch to episodes tab
+      if (!editingMovie && formData.type === 'series') {
+        // For new movies, we'll need to implement a way to get the created movie ID
+        // For now, keep the dialog open so user can manually switch to episodes
+        setActiveTab('episodes');
+      } else {
+        onOpenChange(false);
+      }
     } catch {
       // Error handling is done in parent component
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Film className="h-5 w-5" />
@@ -280,13 +329,30 @@ export function AddMovieDialog({
           </DialogTitle>
           <DialogDescription>
             {editingMovie 
-              ? 'Update the movie information below.' 
+              ? 'Update movie information and manage episodes' 
               : 'Fill in the details to add a new movie to the database.'
             }
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="movie" className="flex items-center gap-2">
+              <Film className="h-4 w-4" />
+              Movie Details
+            </TabsTrigger>
+            <TabsTrigger 
+              value="episodes" 
+              className="flex items-center gap-2"
+              disabled={!savedMovieId && !editingMovie}
+            >
+              <Play className="h-4 w-4" />
+              Episodes {episodes.length > 0 && `(${episodes.length})`}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="movie">
+            <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -485,134 +551,146 @@ export function AddMovieDialog({
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Categories Selection */}
-          <div className="space-y-2">
-            <Label>Categories</Label>
-            <Popover open={openCategoryCombobox} onOpenChange={setOpenCategoryCombobox}>
-              <PopoverTrigger asChild>
+          </div>          {/* Categories and Countries Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">            {/* Categories Selection */}
+            <div className="space-y-2">
+              <Label>Categories</Label>
+              <div className="relative" ref={categoryRef}>
                 <Button
+                  type="button"
                   variant="outline"
-                  role="combobox"
-                  aria-expanded={openCategoryCombobox}
                   className="w-full justify-between"
+                  onClick={() => setOpenCategoryCombobox(!openCategoryCombobox)}
                 >
                   {selectedCategories.length > 0
                     ? `${selectedCategories.length} categories selected`
                     : "Select categories..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search categories..." 
-                    value={categorySearch}
-                    onValueChange={setCategorySearch}
-                  />
-                  <CommandEmpty>No categories found.</CommandEmpty>                  <CommandGroup className="max-h-64 overflow-auto">
-                    {categories
-                      .filter(category => category.name && category.slug && category.name.trim() !== "" && category.slug.trim() !== "")
-                      .map((category) => (
-                      <CommandItem
-                        key={category.slug}
-                        value={category.slug}
-                        onSelect={() => handleCategorySelect(category.slug)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedCategories.includes(category.slug) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {category.name} ({category.movieCount} movies)
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedCategories.map((slug) => {
-                  const category = categories.find(cat => cat.slug === slug);
-                  return (
-                    <Badge key={slug} variant="secondary" className="flex items-center gap-1">
-                      {category?.name}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => handleCategorySelect(slug)}
+                {openCategoryCombobox && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-64 overflow-auto">
+                    <div className="p-2 border-b">
+                      <Input
+                        placeholder="Search categories..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="h-8"
                       />
-                    </Badge>
-                  );
-                })}
+                    </div>
+                    <div className="p-1">
+                      {categories
+                        .filter(category => 
+                          category.name && 
+                          category.slug && 
+                          category.name.trim() !== "" && 
+                          category.slug.trim() !== "" &&
+                          category.name.toLowerCase().includes(categorySearch.toLowerCase())
+                        )
+                        .map((category) => (
+                          <div
+                            key={category.slug}
+                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                            onClick={() => handleCategorySelect(category.slug)}
+                          >
+                            <Check
+                              className={cn(
+                                "h-4 w-4",
+                                selectedCategories.includes(category.slug) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <span>{category.name} ({category.movieCount} movies)</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Countries Selection */}
-          <div className="space-y-2">
-            <Label>Countries</Label>
-            <Popover open={openCountryCombobox} onOpenChange={setOpenCountryCombobox}>
-              <PopoverTrigger asChild>
+              {selectedCategories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedCategories.map((slug) => {
+                    const category = categories.find(cat => cat.slug === slug);
+                    return (
+                      <Badge key={slug} variant="secondary" className="flex items-center gap-1">
+                        {category?.name}
+                        <X 
+                          className="h-3 w-3 cursor-pointer" 
+                          onClick={() => handleCategorySelect(slug)}
+                        />
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </div>            {/* Countries Selection */}
+            <div className="space-y-2">
+              <Label>Countries</Label>
+              <div className="relative" ref={countryRef}>
                 <Button
+                  type="button"
                   variant="outline"
-                  role="combobox"
-                  aria-expanded={openCountryCombobox}
                   className="w-full justify-between"
+                  onClick={() => setOpenCountryCombobox(!openCountryCombobox)}
                 >
                   {selectedCountries.length > 0
                     ? `${selectedCountries.length} countries selected`
                     : "Select countries..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search countries..." 
-                    value={countrySearch}
-                    onValueChange={setCountrySearch}
-                  />
-                  <CommandEmpty>No countries found.</CommandEmpty>                  <CommandGroup className="max-h-64 overflow-auto">
-                    {countries
-                      .filter(country => country.name && country.slug && country.name.trim() !== "" && country.slug.trim() !== "")
-                      .map((country) => (
-                      <CommandItem
-                        key={country.slug}
-                        value={country.slug}
-                        onSelect={() => handleCountrySelect(country.slug)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedCountries.includes(country.slug) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {country.name} ({country.movieCount} movies)
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedCountries.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedCountries.map((slug) => {
-                  const country = countries.find(c => c.slug === slug);
-                  return (
-                    <Badge key={slug} variant="secondary" className="flex items-center gap-1">
-                      {country?.name}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => handleCountrySelect(slug)}
+                {openCountryCombobox && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-64 overflow-auto">
+                    <div className="p-2 border-b">
+                      <Input
+                        placeholder="Search countries..."
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        className="h-8"
                       />
-                    </Badge>
-                  );
-                })}
+                    </div>
+                    <div className="p-1">
+                      {countries
+                        .filter(country => 
+                          country.name && 
+                          country.slug && 
+                          country.name.trim() !== "" && 
+                          country.slug.trim() !== "" &&
+                          country.name.toLowerCase().includes(countrySearch.toLowerCase())
+                        )
+                        .map((country) => (
+                          <div
+                            key={country.slug}
+                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                            onClick={() => handleCountrySelect(country.slug)}
+                          >
+                            <Check
+                              className={cn(
+                                "h-4 w-4",
+                                selectedCountries.includes(country.slug) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <span>{country.name} ({country.movieCount} movies)</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+              {selectedCountries.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedCountries.map((slug) => {
+                    const country = countries.find(c => c.slug === slug);
+                    return (
+                      <Badge key={slug} variant="secondary" className="flex items-center gap-1">
+                        {country?.name}
+                        <X 
+                          className="h-3 w-3 cursor-pointer" 
+                          onClick={() => handleCountrySelect(slug)}
+                        />
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actors */}
@@ -740,9 +818,7 @@ export function AddMovieDialog({
               />
               <Label htmlFor="chieurap">In Theaters</Label>
             </div>
-          </div>
-
-          <DialogFooter>
+          </div>          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -756,6 +832,26 @@ export function AddMovieDialog({
             </Button>
           </DialogFooter>
         </form>
+        </TabsContent>        <TabsContent value="episodes">
+          <div className="space-y-4">
+            {(savedMovieId || editingMovie) ? (
+              <EpisodeManagement
+                movieId={savedMovieId || editingMovie!.id}
+                movieName={formData.name || editingMovie?.name || 'Movie'}
+                episodes={episodes}
+                loading={episodesLoading}
+                onAddEpisode={handleAddEpisode}
+                onUpdateEpisode={handleUpdateEpisode}
+                onDeleteEpisode={handleDeleteEpisode}
+              />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Save the movie first to manage episodes
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
