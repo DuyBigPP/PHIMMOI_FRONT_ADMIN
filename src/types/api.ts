@@ -119,6 +119,11 @@ export interface CategoryStats {
   movieCount: number;
 }
 
+export interface AddCategoryRequest {
+  name: string;
+  slug: string;
+}
+
 export interface CountryStats {
   id: string;
   name: string;

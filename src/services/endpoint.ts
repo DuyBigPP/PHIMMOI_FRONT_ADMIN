@@ -525,6 +525,16 @@ export const ADD_CATEGORY = `${BASE_URL}/api/categories`; // POST
     - name: string (body)
     - slug: string (body)
 */
+export const UPDATE_CATEGORY = `${BASE_URL}/api/categories/{id}`; // PUT
+/* parameters for update category:
+    - id: string (path)
+    - name: string (body)
+    - slug: string (body)
+*/
+export const DELETE_CATEGORY = `${BASE_URL}/api/categories/{id}`; // DELETE
+/* parameters for delete category:
+    - id: string (path)
+*/
 /* COUNTRY */
 export const ADD_COUNTRY = `${BASE_URL}/api/countries`; // POST
 /* parameters for add country:

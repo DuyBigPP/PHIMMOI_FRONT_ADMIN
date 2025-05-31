@@ -23,7 +23,10 @@ import {
   GET_TOP_VIEWED_STATS,
   GET_TOP_FAVORITE_STATS,
   GET_TOP_COMMENTED_STATS,
-  GET_MOVIE_VIEW_STATS
+  GET_MOVIE_VIEW_STATS,
+  ADD_CATEGORY,
+  UPDATE_CATEGORY,
+  DELETE_CATEGORY
 } from './endpoint';
 import {
   ApiResponse,
@@ -214,6 +217,21 @@ export const logout = (): void => {
 // Admin Stats API functions
 export const getCategoryStats = async (): Promise<ApiResponse<CategoryStats[]>> => {
   const response = await axios.get(GET_CATEGORY_STATS);
+  return response.data;
+};
+
+export const addCategory = async (name: string, slug: string): Promise<ApiResponse<CategoryStats>> => {
+  const response = await axios.post(ADD_CATEGORY, { name, slug });
+  return response.data;
+};
+
+export const updateCategory = async (id: string, name: string, slug: string): Promise<ApiResponse<CategoryStats>> => {
+  const response = await axios.put(UPDATE_CATEGORY.replace('{id}', id), { name, slug });
+  return response.data;
+};
+
+export const deleteCategory = async (id: string): Promise<ApiResponse<void>> => {
+  const response = await axios.delete(DELETE_CATEGORY.replace('{id}', id));
   return response.data;
 };
 
