@@ -5,6 +5,12 @@ import {
   DELETE_COMMENT,
   GET_MOVIE_LIST,
   GET_MOVIE_BY_SLUG,
+  ADD_NEW_MOVIE,
+  UPDATE_MOVIE_BY_ID,
+  DELETE_MOVIE_BY_ID,
+  ADD_EPISODE,
+  EDIT_EPISODE,
+  DELETE_EPISODE,
   CREATE_RATING,
   GET_RATING_BY_MOVIE_ID,
   DELETE_RATING,
@@ -34,6 +40,12 @@ import {
   CommentListResponse,
   MovieListResponse,
   MovieListParams,
+  MovieCreateRequest,
+  MovieUpdateRequest,
+  MovieResponse,
+  EpisodeCreateRequest,
+  EpisodeUpdateRequest,
+  EpisodeResponse,
   Rating,
   RatingListResponse,
   LoginRequest,
@@ -80,6 +92,152 @@ export const getMovieList = async (params: MovieListParams): Promise<ApiResponse
 
 export const getMovieBySlug = async (slug: string): Promise<ApiResponse<MovieListResponse>> => {
   const response = await axios.get(GET_MOVIE_BY_SLUG.replace('{slug}', slug));
+  return response.data;
+};
+
+// Movie management API functions
+export const addMovie = async (movieData: MovieCreateRequest): Promise<ApiResponse<MovieResponse>> => {
+  const formData = new FormData();
+  
+  // Add basic fields
+  formData.append('name', movieData.name);
+  formData.append('slug', movieData.slug);
+  formData.append('originName', movieData.originName);
+  formData.append('content', movieData.content);
+  formData.append('type', movieData.type);
+  formData.append('status', movieData.status);
+  formData.append('year', movieData.year.toString());
+  
+  // Add optional fields
+  if (movieData.isCopyright !== undefined) formData.append('isCopyright', movieData.isCopyright.toString());
+  if (movieData.subDocquyen !== undefined) formData.append('subDocquyen', movieData.subDocquyen.toString());
+  if (movieData.chieurap !== undefined) formData.append('chieurap', movieData.chieurap.toString());
+  if (movieData.trailerUrl) formData.append('trailerUrl', movieData.trailerUrl);
+  if (movieData.time) formData.append('time', movieData.time);
+  if (movieData.episodeCurrent) formData.append('episodeCurrent', movieData.episodeCurrent);
+  if (movieData.episodeTotal) formData.append('episodeTotal', movieData.episodeTotal);
+  if (movieData.quality) formData.append('quality', movieData.quality);
+  if (movieData.lang) formData.append('lang', movieData.lang);
+  if (movieData.notify) formData.append('notify', movieData.notify);
+  if (movieData.showtimes) formData.append('showtimes', movieData.showtimes);
+  if (movieData.tmdbId) formData.append('tmdbId', movieData.tmdbId);
+  if (movieData.tmdbType) formData.append('tmdbType', movieData.tmdbType);
+  if (movieData.tmdbVoteAverage) formData.append('tmdbVoteAverage', movieData.tmdbVoteAverage.toString());
+  if (movieData.tmdbVoteCount) formData.append('tmdbVoteCount', movieData.tmdbVoteCount.toString());
+  if (movieData.imdbId) formData.append('imdbId', movieData.imdbId);
+  
+  // Add file uploads
+  if (movieData.poster) formData.append('poster', movieData.poster);
+  if (movieData.thumb) formData.append('thumb', movieData.thumb);
+  
+  // Add arrays
+  movieData.categories.forEach(category => formData.append('categories[]', category));
+  movieData.countries.forEach(country => formData.append('countries[]', country));
+  if (movieData.actors) {
+    movieData.actors.forEach(actor => formData.append('actors[]', actor));
+  }
+  
+  const response = await axios.post(ADD_NEW_MOVIE, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const updateMovie = async (movieData: MovieUpdateRequest): Promise<ApiResponse<MovieResponse>> => {
+  const formData = new FormData();
+  
+  // Add basic fields that might be updated
+  if (movieData.name) formData.append('name', movieData.name);
+  if (movieData.slug) formData.append('slug', movieData.slug);
+  if (movieData.originName) formData.append('originName', movieData.originName);
+  if (movieData.content) formData.append('content', movieData.content);
+  if (movieData.type) formData.append('type', movieData.type);
+  if (movieData.status) formData.append('status', movieData.status);
+  if (movieData.year) formData.append('year', movieData.year.toString());
+  
+  // Add optional fields
+  if (movieData.isCopyright !== undefined) formData.append('isCopyright', movieData.isCopyright.toString());
+  if (movieData.subDocquyen !== undefined) formData.append('subDocquyen', movieData.subDocquyen.toString());
+  if (movieData.chieurap !== undefined) formData.append('chieurap', movieData.chieurap.toString());
+  if (movieData.trailerUrl) formData.append('trailerUrl', movieData.trailerUrl);
+  if (movieData.time) formData.append('time', movieData.time);
+  if (movieData.episodeCurrent) formData.append('episodeCurrent', movieData.episodeCurrent);
+  if (movieData.episodeTotal) formData.append('episodeTotal', movieData.episodeTotal);
+  if (movieData.quality) formData.append('quality', movieData.quality);
+  if (movieData.lang) formData.append('lang', movieData.lang);
+  if (movieData.notify) formData.append('notify', movieData.notify);
+  if (movieData.showtimes) formData.append('showtimes', movieData.showtimes);
+  if (movieData.tmdbId) formData.append('tmdbId', movieData.tmdbId);
+  if (movieData.tmdbType) formData.append('tmdbType', movieData.tmdbType);
+  if (movieData.tmdbVoteAverage) formData.append('tmdbVoteAverage', movieData.tmdbVoteAverage.toString());
+  if (movieData.tmdbVoteCount) formData.append('tmdbVoteCount', movieData.tmdbVoteCount.toString());
+  if (movieData.imdbId) formData.append('imdbId', movieData.imdbId);
+  
+  // Add file uploads if provided
+  if (movieData.poster) formData.append('poster', movieData.poster);
+  if (movieData.thumb) formData.append('thumb', movieData.thumb);
+  
+  // Add arrays if provided
+  if (movieData.categories) {
+    movieData.categories.forEach(category => formData.append('categories[]', category));
+  }
+  if (movieData.countries) {
+    movieData.countries.forEach(country => formData.append('countries[]', country));
+  }
+  if (movieData.actors) {
+    movieData.actors.forEach(actor => formData.append('actors[]', actor));
+  }
+  
+  const response = await axios.put(UPDATE_MOVIE_BY_ID.replace('{id}', movieData.id), formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const deleteMovie = async (movieId: string): Promise<ApiResponse<void>> => {
+  const response = await axios.delete(DELETE_MOVIE_BY_ID.replace('{id}', movieId));
+  return response.data;
+};
+
+// Episode management API functions
+export const addEpisode = async (episodeData: EpisodeCreateRequest): Promise<ApiResponse<EpisodeResponse>> => {
+  const formData = new FormData();
+  formData.append('name', episodeData.name);
+  formData.append('slug', episodeData.slug);
+  formData.append('movieId', episodeData.movieId);
+  if (episodeData.serverName) formData.append('serverName', episodeData.serverName);
+  formData.append('video', episodeData.video);
+  
+  const response = await axios.post(ADD_EPISODE, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const updateEpisode = async (episodeData: EpisodeUpdateRequest): Promise<ApiResponse<EpisodeResponse>> => {
+  const formData = new FormData();
+  if (episodeData.name) formData.append('name', episodeData.name);
+  if (episodeData.slug) formData.append('slug', episodeData.slug);
+  if (episodeData.movieId) formData.append('movieId', episodeData.movieId);
+  if (episodeData.serverName) formData.append('serverName', episodeData.serverName);
+  if (episodeData.video) formData.append('video', episodeData.video);
+  
+  const response = await axios.put(EDIT_EPISODE.replace('{id}', episodeData.id), formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const deleteEpisode = async (episodeId: string): Promise<ApiResponse<void>> => {
+  const response = await axios.delete(DELETE_EPISODE.replace('{id}', episodeId));
   return response.data;
 };
 

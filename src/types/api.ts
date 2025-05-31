@@ -173,3 +173,94 @@ export interface DashboardStats {
   topCommented: TopViewedMovie[];
   viewStats: ViewStats;
 }
+
+// Movie management types
+export interface MovieCreateRequest {
+  name: string;
+  slug: string;
+  originName: string;
+  content: string;
+  type: 'movie' | 'series' | 'hoathinh';
+  status: 'completed' | 'ongoing';
+  poster?: File;
+  thumb?: File;
+  isCopyright?: boolean;
+  subDocquyen?: boolean;
+  chieurap?: boolean;
+  trailerUrl?: string;
+  time?: string;
+  episodeCurrent?: string;
+  episodeTotal?: string;
+  quality?: string;
+  lang?: string;
+  notify?: string;
+  showtimes?: string;
+  year: number;
+  categories: string[]; // Array of category slugs
+  countries: string[]; // Array of country slugs
+  actors?: string[]; // Array of actor names
+  tmdbId?: string;
+  tmdbType?: string;
+  tmdbVoteAverage?: number;
+  tmdbVoteCount?: number;
+  imdbId?: string;
+}
+
+export interface MovieUpdateRequest extends Partial<MovieCreateRequest> {
+  id: string;
+}
+
+export interface MovieResponse {
+  id: string;
+  name: string;
+  slug: string;
+  originName: string;
+  content: string;
+  type: string;
+  status: string;
+  posterUrl: string;
+  thumbUrl: string;
+  year: number;
+  view: number;
+  createdAt: string;
+  updatedAt: string;
+  categories: Array<{
+    category: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  }>;
+  countries: Array<{
+    country: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  }>;
+}
+
+export interface EpisodeCreateRequest {
+  name: string;
+  slug: string;
+  movieId: string;
+  serverName?: string;
+  video: File;
+}
+
+export interface EpisodeUpdateRequest extends Partial<EpisodeCreateRequest> {
+  id: string;
+}
+
+export interface EpisodeResponse {
+  id: string;
+  name: string;
+  slug: string;
+  filename: string;
+  linkEmbed: string;
+  linkM3u8: string;
+  movieId: string;
+  serverName: string;
+  createdAt: string;
+  updatedAt: string;
+}
