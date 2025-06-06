@@ -153,10 +153,9 @@ export function AddMovieDialog({
         setSelectedCountries(editingMovie.countries?.map(country => country.country.slug) || []);
         setSelectedActors([]);
         setPosterPreview(editingMovie.posterUrl || '');
-        setThumbPreview(editingMovie.thumbUrl || '');
-        setSavedMovieId(editingMovie.id);
-        // Load episodes for this movie
-        loadEpisodes(editingMovie.id);
+        setThumbPreview(editingMovie.thumbUrl || '');        setSavedMovieId(editingMovie.id);
+        // Load episodes for this movie using slug
+        loadEpisodes(editingMovie.slug);
         // If it's a series, show episodes tab
         if (editingMovie.type === 'series') {
           setActiveTab('episodes');

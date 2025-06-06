@@ -27,9 +27,11 @@ import {
   GET_COUNTRY_STATS,
   GET_TOP_RATED_STATS,
   GET_TOP_VIEWED_STATS,
-  GET_TOP_FAVORITE_STATS,
-  GET_TOP_COMMENTED_STATS,
+  GET_TOP_FAVORITE_STATS,  GET_TOP_COMMENTED_STATS,
   GET_MOVIE_VIEW_STATS,
+  GET_USER_LIST,
+  UPDATE_USER_INFO,
+  DELETE_USER,
   ADD_CATEGORY,
   UPDATE_CATEGORY,
   DELETE_CATEGORY
@@ -424,6 +426,76 @@ export const getMovieViewStats = async (
 ): Promise<ApiResponse<ViewStats>> => {
   const response = await axios.get(GET_MOVIE_VIEW_STATS, { params: { period, limit } });
   return response.data;
+};
+
+// User management API functions
+export const getUserList = async (): Promise<ApiResponse<User[]>> => {
+  try {
+    console.log('Fetching users from:', GET_USER_LIST);
+    const response = await axios.get(GET_USER_LIST);
+    console.log('Users API response:', response.data);
+    
+    // The API returns a plain array, so we need to wrap it in the expected format
+    return {
+      success: true,
+      data: response.data,
+      message: "Users loaded successfully"
+    };
+  } catch (error: unknown) {
+    console.error('getUserList error:', error);
+    const axiosError = error as { response?: { data?: { message?: string }; status?: number }; message?: string };
+    console.error('Error details:', {
+      status: axiosError.response?.status,
+      message: axiosError.response?.data?.message,
+      errorMessage: axiosError.message
+    });
+    
+    return {
+      success: false,
+      data: [],
+      message: axiosError.response?.data?.message || axiosError.message || "Failed to load users"
+    };
+  }
+};
+
+export const updateUser = async (
+  id: string, 
+  name: string, 
+  isAdmin: boolean
+): Promise<ApiResponse<User>> => {
+  try {
+    const response = await axios.put(UPDATE_USER_INFO.replace('{id}', id), { name, isAdmin });
+    return {
+      success: true,
+      data: response.data,
+      message: "User updated successfully"
+    };
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+    return {
+      success: false,
+      data: {} as User,
+      message: axiosError.response?.data?.message || axiosError.message || "Failed to update user"
+    };
+  }
+};
+
+export const deleteUser = async (id: string): Promise<ApiResponse<void>> => {
+  try {
+    await axios.delete(DELETE_USER.replace('{id}', id));
+    return {
+      success: true,
+      data: undefined,
+      message: "User deleted successfully"
+    };
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+    return {
+      success: false,
+      data: undefined,
+      message: axiosError.response?.data?.message || axiosError.message || "Failed to delete user"
+    };
+  }
 };
 
 // Combined dashboard data function with improved error handling

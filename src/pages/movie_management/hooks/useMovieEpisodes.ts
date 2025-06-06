@@ -1,33 +1,63 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { EpisodeResponse, EpisodeCreateRequest, EpisodeUpdateRequest } from '@/types/api';
-import { addEpisode, updateEpisode, deleteEpisode} from '@/services/function';
+import { EpisodeResponse, EpisodeCreateRequest, EpisodeUpdateRequest, MovieListResponse } from '@/types/api';
+import { addEpisode, updateEpisode, deleteEpisode, getMovieBySlug } from '@/services/function';
 
 export function useMovieEpisodes() {
   const { toast } = useToast();
   const [episodes, setEpisodes] = useState<EpisodeResponse[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Load episodes for a movie
-  const loadEpisodes = useCallback(async (movieId: string) => {
-    if (!movieId) {
+  // Load episodes for a movie using movie slug
+  const loadEpisodes = useCallback(async (movieSlug: string) => {
+    if (!movieSlug) {
       setEpisodes([]);
       return;
     }
 
     setLoading(true);
     try {
-      // Since there's no direct endpoint to get episodes by movieId,
-      // we'll manage episodes locally and load them when editing
-      // For now, we'll start with empty episodes and let users add them
-      setEpisodes([]);
-    } catch (error) {
+      console.log('Loading episodes for movie slug:', movieSlug);
+      const response = await getMovieBySlug(movieSlug);
+        if (response.success && response.data) {
+        // The API returns a movie object that might have episodes
+        // Check if the response contains movie data with episodes
+        const movieData = response.data as MovieListResponse;
+        
+        console.log('Movie data from API:', movieData);        // Since getMovieBySlug returns MovieListResponse, check if it's wrapped in movies array
+        if (movieData.movies && movieData.movies.length > 0) {
+          // Try to access episodes from the first movie - the API may extend the base Movie type
+          const movie = movieData.movies[0];
+          const movieWithEpisodes = movie as typeof movie & { episodes?: EpisodeResponse[] };
+          
+          if (movieWithEpisodes.episodes && Array.isArray(movieWithEpisodes.episodes)) {
+            console.log('Found episodes in movie object:', movieWithEpisodes.episodes);
+            setEpisodes(movieWithEpisodes.episodes);
+          } else {
+            console.log('No episodes found in movie object, setting empty array');
+            setEpisodes([]);
+          }
+        } else {
+          // Fallback: check if the data itself has episodes (in case API structure changes)
+          const responseWithEpisodes = movieData as typeof movieData & { episodes?: EpisodeResponse[] };
+          if (responseWithEpisodes.episodes && Array.isArray(responseWithEpisodes.episodes)) {
+            console.log('Found episodes directly:', responseWithEpisodes.episodes);
+            setEpisodes(responseWithEpisodes.episodes);
+          } else {
+            console.log('No episodes found in response, setting empty array');
+            setEpisodes([]);
+          }
+        }
+      } else {
+        console.error('Failed to get movie data:', response.message);
+        setEpisodes([]);
+      }    } catch (error) {
       console.error('Failed to load episodes:', error);
       toast({
         title: 'Error',
         description: 'Failed to load episodes',
         variant: 'destructive',
       });
+      setEpisodes([]);
     } finally {
       setLoading(false);
     }
