@@ -15,14 +15,13 @@ export function useUserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
   const [usersLoading, setUsersLoading] = useState(false);
     // Search and filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
   // Load users
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
