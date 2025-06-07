@@ -1,5 +1,5 @@
 import React from "react"
-import { Home, Settings, Film, Users, Tag} from "lucide-react"
+import { Home, /* Settings, */ Film, Users, Tag} from "lucide-react"
 
 export type MenuItem = {
   label: string
@@ -24,5 +24,5 @@ export const menuItems: MenuItem[] = [
   { label: "Movies", path: "/movie-management", icon: <Film size={16} /> },
   { label: "Users", path: "/user-management", icon: <Users size={16} /> },
   { label: "Genres", path: "/genre-management", icon: <Tag size={16} /> },
-  { label: "Settings", path: "/settings", icon: <Settings size={16} /> },
+/*   { label: "Settings", path: "/settings", icon: <Settings size={16} /> }, */
 ]

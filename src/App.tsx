@@ -4,7 +4,7 @@ import { ToastProvider } from "@/hooks/use-toast"
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="app-theme">
+    <ThemeProvider defaultTheme="light" storageKey="app-theme">
       <ToastProvider>
         <AdminRoutes />
       </ToastProvider>
