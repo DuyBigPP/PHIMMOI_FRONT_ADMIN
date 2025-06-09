@@ -155,6 +155,38 @@ export interface TopViewedMovie {
   view: number;
 }
 
+export interface TopFavoriteMovie {
+  id: string;
+  name: string;
+  slug: string;
+  originName: string;
+  posterUrl: string;
+  thumbUrl: string;
+  year: number;
+  favoriteCount: number;
+  // Support for alternative field names from API
+  favorite_count?: number;
+  _count?: {
+    favorites: number;
+  };
+}
+
+export interface TopCommentedMovie {
+  id: string;
+  name: string;
+  slug: string;
+  originName: string;
+  posterUrl: string;
+  thumbUrl: string;
+  year: number;
+  commentCount: number;
+  // Support for alternative field names from API
+  comment_count?: number;
+  _count?: {
+    comments: number;
+  };
+}
+
 export interface ViewStats {
   period: string;
   totalViews: number;
@@ -169,8 +201,8 @@ export interface DashboardStats {
   countryStats: CountryStats[];
   topRated: TopRatedMovie[];
   topViewed: TopViewedMovie[];
-  topFavorite: TopViewedMovie[];
-  topCommented: TopViewedMovie[];
+  topFavorite: TopFavoriteMovie[];
+  topCommented: TopCommentedMovie[];
   viewStats: ViewStats;
 }
 

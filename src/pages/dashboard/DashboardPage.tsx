@@ -206,9 +206,8 @@ export default function DashboardPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{movie.name}</p>
                             <p className="text-xs text-muted-foreground">{movie.year}</p>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {Number(movie.view || 0).toLocaleString()} views
+                          </div>                          <div className="text-sm text-muted-foreground">
+                            {Number(movie.favoriteCount || movie.favorite_count || (movie as unknown as { _count?: { favorites?: number } })?._count?.favorites || 0).toLocaleString()} favorites
                           </div>
                         </div>
                       ))}
@@ -226,8 +225,7 @@ export default function DashboardPage() {
                   <CardTitle>Most Commented Movies</CardTitle>
                   <CardDescription>Movies with most engagement</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {dashboardData.topCommented && dashboardData.topCommented.length > 0 ? (
+                <CardContent>                  {dashboardData.topCommented && dashboardData.topCommented.length > 0 ? (
                     <div className="space-y-4">
                       {dashboardData.topCommented.slice(0, 5).map((movie, index) => (
                         <div key={movie.id} className="flex items-center space-x-4">
@@ -237,9 +235,8 @@ export default function DashboardPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{movie.name}</p>
                             <p className="text-xs text-muted-foreground">{movie.year}</p>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {Number(movie.view || 0).toLocaleString()} views
+                          </div>                          <div className="text-sm text-muted-foreground">
+                            {Number(movie.commentCount || movie.comment_count || (movie as unknown as { _count?: { comments?: number } })?._count?.comments || 0).toLocaleString()} comments
                           </div>
                         </div>
                       ))}

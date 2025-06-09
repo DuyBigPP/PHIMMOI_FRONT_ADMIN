@@ -59,7 +59,9 @@ import {
   CategoryStats,
   CountryStats,
   TopRatedMovie,
+  TopFavoriteMovie,
   TopViewedMovie,
+  TopCommentedMovie,
   ViewStats,
   DashboardStats
 } from '@/types/api';
@@ -410,12 +412,12 @@ export const getTopViewedStats = async (limit: number = 10): Promise<ApiResponse
   return response.data;
 };
 
-export const getTopFavoriteStats = async (limit: number = 10): Promise<ApiResponse<TopViewedMovie[]>> => {
+export const getTopFavoriteStats = async (limit: number = 10): Promise<ApiResponse<TopFavoriteMovie[]>> => {
   const response = await axios.get(GET_TOP_FAVORITE_STATS, { params: { limit } });
   return response.data;
 };
 
-export const getTopCommentedStats = async (limit: number = 10): Promise<ApiResponse<TopViewedMovie[]>> => {
+export const getTopCommentedStats = async (limit: number = 10): Promise<ApiResponse<TopCommentedMovie[]>> => {
   const response = await axios.get(GET_TOP_COMMENTED_STATS, { params: { limit } });
   return response.data;
 };
